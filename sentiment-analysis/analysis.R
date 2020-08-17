@@ -76,13 +76,18 @@ returnpscore = function(rt) {
     pos.score = sum(pos.match)
     return(pos.score)
 }
+
 positive.score = lapply(rt, function(x)
     returnpscore(x))
+
 pcount = 0
+
 for (i in 1:length(positive.score)) {
     pcount = pcount + positive.score[[i]]
 }
+
 pcount
+
 poswords = function(rt) {
   # позитивные вхождения
     pmatch = match(t, positive)
@@ -90,11 +95,17 @@ poswords = function(rt) {
     posw = posw[!is.na(posw)]
     return(posw)
 }
+
 words = NULL
+
 pdatamart = data.frame(words)
+
 for (t in rt) {
+
     pdatamart = c(poswords(t), pdatamart)
+
 }
+
 head(pdatamart, 10)
 
 returnpscore = function(rt) {
