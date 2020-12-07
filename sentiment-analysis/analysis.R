@@ -1,15 +1,15 @@
-library('twitteR')
+l:qbrary('twitteR')
 library('wordcloud')
-library('tm.plugin.webmining')
 library('tau')
 library('RWeka')
 library('tm')
+library('tm.plugin.webmining')
 library('stringr')
 library('dplyr')
 library('ggplot2')
 
 
-setwd('D:/Никита/NLP_Project/Rotten Tomatoes dataset/stanfordSentimentTreebank')
+#setwd('../Datasets/sentiment-analysis/')
 
 # словари позитивных и негативных слов
 positive = scan('positive-words.txt',
