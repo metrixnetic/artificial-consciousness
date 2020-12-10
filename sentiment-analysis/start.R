@@ -43,6 +43,4 @@ negative  <- as.vector(unlist(negative, use.names=FALSE))
 positive  <- clean(positive)
 
 print(head(positive))
-#positive  <- clean(positive)
-#negative  <- clean(negative)
 
