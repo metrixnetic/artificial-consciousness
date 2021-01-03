@@ -80,3 +80,5 @@ colnames(tdm) = emos
 # comparison word cloud
 comparison.cloud(tdm, colors = brewer.pal(nemo, "Dark2"),
                 scale = c(3,.5), random.order = FALSE, title.size = 1.5)
+
+# TODO:
