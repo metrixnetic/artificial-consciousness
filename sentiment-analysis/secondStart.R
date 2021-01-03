@@ -1,86 +1,99 @@
 library(tidyverse)
-library(tidytext)
-library(glue)
-library(stringr)
+library(tm)
+list.files(path = "../input")
+options(repr.plot.width = 10, repr.plot.height = 8)
 
-# get a list of the files in the input directory
-files <- list.files("../input")
+df_train <- read_csv("../input/train.csv")
+# read test
+df_test <- read_csv("../input/train.csv")
+# read sample submission
+sample_submission <- read_csv("../input/sample_submission.csv")
 
-fileName <- glue("../input/", files[1], sep = "")
-# get rid of any sneaky trailing spaces
-fileName <- trimws(fileName)
+#print(ggplot(data = df_train,aes(sentiment,fill=sentiment))+geom_bar(aes(y=(..count..)/sum(..count..)))+
+#    geom_text(stat='count', aes(y=(..count..)/sum(..count..),label=round((..count..)/sum(..count..),2)), vjust=-1)+
+#    ggtitle(str_wrap("Tweets General Sentiment in Training Data",30)))
 
-# read in the new file
-fileText <- glue(read_file(fileName))
-# remove any dollar signs (they're special characters in R)
-fileText <- gsub("\\$", "", fileText)
+# If you want see data | 
 
-# tokenize
-tokens <- data_frame(text = fileText) %>% unnest_tokens(word, text)
-tokens %>%
-  inner_join(get_sentiments("bing")) %>% # pull out only sentiment words
-  count(sentiment) %>% # count the # of positive & negative words
-  spread(sentiment, n, fill = 0) %>% # made data wide rather than narrow
-  mutate(sentiment = positive - negative) # # of positive words - # of negative owrds
 
-# write a function that takes the name of a file and returns the # of postive
-# sentiment words, negative sentiment words, the difference & the normalized difference
-GetSentiment <- function(file){
-    # get the file
-    fileName <- glue("../input/", file, sep = "")
-    # get rid of any sneaky trailing spaces
-    fileName <- trimws(fileName)
-
-    # read in the new file
-    fileText <- glue(read_file(fileName))
-    # remove any dollar signs (they're special characters in R)
-    fileText <- gsub("\\$", "", fileText) 
-
-    # tokenize
-    tokens <- data_frame(text = fileText) %>% unnest_tokens(word, text)
-
-    # get the sentiment from the first text: 
-    sentiment <- tokens %>%
-      inner_join(get_sentiments("bing")) %>% # pull out only sentimen words
-      count(sentiment) %>% # count the # of positive & negative words
-      spread(sentiment, n, fill = 0) %>% # made data wide rather than narrow
-      mutate(sentiment = positive - negative) %>% # # of positive words - # of negative owrds
-      mutate(file = file) %>% # add the name of our file
-      mutate(year = as.numeric(str_match(file, "\\d{4}"))) %>% # add the year
-      mutate(president = str_match(file, "(.*?)_")[2]) # add president
-
-    # return our sentiment dataframe
-    return(sentiment)
+removeHtmlTags <- function(x)
+    (gsub("<.*?>", "", x))
+removeHashTags <- function(x)
+    gsub("#\\S+", " ", x)
+removeTwitterHandles <- function(x)
+    gsub("@\\S+", " ", x)
+removeURL <- function(x)
+    gsub("http:[[:alnum:]]*", " ", x)
+removeApostrophe <- function(x)
+    gsub("'", "", x)
+removeNonLetters <- function(x)
+    gsub("[^a-zA-Z\\s]", " ", x)
+removeSingleChar <- function(x)
+    gsub("\\s\\S\\s", " ", x)
+    # function to clean corpus
+cleanCorpus <- function(reviews){
+    # create the corpus
+    corpus <- VCorpus(VectorSource(reviews))
+    # remove reviews
+    rm(reviews)
+    # remove twitter handles and hashtags
+    corpus <- tm_map(corpus, content_transformer(removeHtmlTags))
+    corpus <- tm_map(corpus,content_transformer(removeHashTags))
+    corpus <- tm_map(corpus,content_transformer(removeTwitterHandles))
+    # other cleaning transformations
+    corpus <- tm_map(corpus, content_transformer(removeURL))
+    corpus <- tm_map(corpus, content_transformer(removeApostrophe))
+    corpus <- tm_map(corpus, content_transformer(removeNonLetters))
+    corpus <- tm_map(corpus, removeNumbers)
+    corpus <- tm_map(corpus, content_transformer(tolower))
+    corpus <- tm_map(corpus, removeWords, c(stopwords("english")))
+    corpus <- tm_map(corpus, content_transformer(removeSingleChar))
+    # Remove punctuations
+    corpus <- tm_map(corpus, removePunctuation)
+    # Eliminate extra white spaces
+    corpus <- tm_map(corpus, stripWhitespace)    
+    # stem document
+    corpuse <- tm_map(corpus, stemDocument)
+    return(corpuse)
 }
 
-# test: should return
-# negative	positive	sentiment	file	year	president
-# 117	240	123	Bush_1989.txt	1989	Bush
-GetSentiment(files[1])
-sentiments <- data_frame()
-
-# get the sentiments for each file in our datset
-for(i in files){
-    sentiments <- rbind(sentiments, GetSentiment(i))
+# function get word frequency
+wordFrequency <- function(corpus){
+    dtm <- TermDocumentMatrix(corpus)
+    rm(corpus)
+    # convert to matrix
+    m <- as.matrix(dtm)
+    rm(dtm)
+    # sort by word frequency
+    v <- sort(rowSums(m),decreasing=TRUE)
+    rm(m)
+    # calculate word frequency
+    word_frequencies <- data.frame(word = names(v),freq=v)
+    return(word_frequencies)
 }
 
-# disambiguate Bush Sr. and George W. Bush 
-# correct president in applicable rows
-bushSr <- sentiments %>% 
-  filter(president == "Bush") %>% # get rows where the president is named "Bush"...
-  filter(year < 2000) %>% # ...and the year is before 200
-  mutate(president = "Bush Sr.") # and change "Bush" to "Bush Sr."
+reviews <- df_train$text
+corpus_train <- cleanCorpus(reviews)
 
-# remove incorrect rows
-sentiments <- anti_join(sentiments, sentiments[sentiments$president == "Bush" & sentiments$year < 2000, ])
+reviews_selected_text <- df_train$selected_text
+corpus_selected_text <- cleanCorpus(reviews_selected_text)
 
-# add corrected rows to data_frame 
-sentiments <- full_join(sentiments, bushSr)
+df_pos_train <- df_train[df_train$sentiment == "positive",]
+df_neg_train <- df_train[df_train$sentiment == "negative",]
+df_neu_train <- df_train[df_train$sentiment == "neutral",]
 
-# summerize the sentiment measures
-summary(sentiments)
+corpus_train_pos <- cleanCorpus(df_pos_train$text)
+corpus_train_neg <- cleanCorpus(df_neg_train$text)
+corpus_train_neu <- cleanCorpus(df_neu_train$text)
 
-ggplot(sentiments, aes(x = as.numeric(year), y = sentiment)) +
-  geom_point(aes(color = president))+ # add points to our plot, color-coded by president
-  geom_smooth(method = "auto") # pick a method & fit a model
+word_frequencies_train <- wordFrequency(corpus_train)
+# print top 10 word frequencies
+print(ggplot(data = word_frequencies_train[1:10,], aes(reorder(word, order(freq, decreasing = TRUE)), freq))+geom_col()+
+ggtitle("Top 10 most Frequent Words in Training Data")+xlab("Words")+ylab("Frequencies")+thm+theme(
+  plot.title = element_text(size = 16,hjust = 0.5),
+  axis.text = element_text(size =14),
+  axis.title = element_text(size = 14)
+))
+
+
 
