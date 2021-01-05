@@ -3,17 +3,16 @@ library(tidytext)
 library(stringr)
 
 tx  <- "i trust you"
-#tx  <- paste0("good bad", " ", tx)
 textInp <- gsub("\\$", "", tx)
 
 # tokenize
 tokens <- data_frame(text = textInp) %>% unnest_tokens(word, text)
 
 res  <- tokens %>%
-  inner_join(get_sentiments("nrc")) %>% # pull out only sentiment words
-  count(sentiment) %>% # count the # of positive & negative words
+  inner_join(get_sentiments("nrc")) %>% 
+  count(sentiment) %>% 
   spread(sentiment, n, fill = 0) %>%
-  mutate(1)# made data wide rather than narrow
+  mutate(1)
 
 res  <- c(unlist(res[1:length(unlist(res))]), 1)
 
