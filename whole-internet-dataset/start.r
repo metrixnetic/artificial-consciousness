@@ -14,8 +14,16 @@ library(rjson)
 #cat(cubik)
 
 input  <- "who is vikings"
+
 url  <- paste0("https://api.duckduckgo.com/?q=", input, "&format=json&pretty=1")
 data  <- fromJSON(file=url)
+
 print(data$AbstractText)
-print(data$RelatedTopics[[1]]$Text)
-print(paste0("if you are really intrested in theme read that: ", data$AbstractURL))
+
+if(data$AbstractText == "") {
+    print(data$RelatedTopics[[1]]$Text)
+}
+#else if(data$AbstractText == "") {
+ #   print("gay")
+#}
+print(paste0("if you are really intrested in the theme read that: ", data$AbstractURL))
