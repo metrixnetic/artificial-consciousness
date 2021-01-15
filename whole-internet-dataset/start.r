@@ -6,14 +6,8 @@ library(rebus)
 library(lubridate)
 library(rjson)
 
-#scraping_wiki <- read_html("https://en.wikipedia.org/wiki/Web_scraping")
 
-#cubik  <- scraping_wiki %>%
- #           html_text()
-#cubik  <- gsub("\\$", "", cubik)
-#cat(cubik)
-
-input  <- "albert einstein"
+input  <- "albert einshtein"
 
 url  <- paste0("https://api.duckduckgo.com/?q=", input, "&format=json&pretty=1")
 data  <- fromJSON(file=url)
@@ -22,7 +16,14 @@ print(data$AbstractText)
 
 if(data$AbstractText == "") {
     if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
-        print("got that")
+        
+        scraping_wiki <- read_html("https://en.wikipedia.org/wiki/Web_scraping")
+
+        cubik  <- scraping_wiki %>%
+        html_text()
+        cubik  <- gsub("\\$", "", cubik)
+        cat(cubik)
+
     } else {
         print(data$RelatedTopics[[1]]$Text)
     }
