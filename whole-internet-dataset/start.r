@@ -5,17 +5,8 @@ library(stringr)
 library(rebus)
 library(lubridate)
 library(rjson)
-
-
-input  <- "albert einshtein"
-
-url  <- paste0("https://api.duckduckgo.com/?q=", input, "&format=json&pretty=1")
-data  <- fromJSON(file=url)
-
-print(data$AbstractText)
-
-if(data$AbstractText == "") {
-    if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
+library(RCurl)
+library(XML)
 get_first_google_link <- function(name, root = TRUE) {
   url = URLencode(paste0("https://www.google.com/search?q=",name))
   page <- xml2::read_html(url)
@@ -27,15 +18,21 @@ get_first_google_link <- function(name, root = TRUE) {
   # clean it
   link <- sub("^/url\\?q\\=(.*?)\\&sa.*$","\\1", link)
   # get root if relevant
-  if(root) link <- sub("^(https?://.*?/).*$", "\\1", link)
-  link
+#  if(root) link <- sub("^(https?://.*?/).*$", "\\1", link)
+  return(link)
 }
 
-companies <- data.frame(company = c("apple acres llc","abbvie inc","apple inc"))
-companies <- transform(companies, url = sapply(company,get_first_google_link))
-companies
+input  <- "albert einshtein"
 
+url  <- paste0("https://api.duckduckgo.com/?q=", input, "&format=json&pretty=1")
+data  <- fromJSON(file=url)
 
+print(data$AbstractText)
+
+if(data$AbstractText == "") {
+    if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
+         first_link  <-  get_first_google_link(input)
+         print(first_link)
 #        scraping_wiki <- read_html("https://en.wikipedia.org/wiki/Web_scraping")
 
  #       cubik  <- scraping_wiki %>%
