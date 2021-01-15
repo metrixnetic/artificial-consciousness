@@ -22,7 +22,9 @@ print(data$AbstractText)
 
 if(data$AbstractText == "") {
     if(inherits(try(data$RelatedTopics[[1]]$Text == TRUE), "try-error")){
-        print("h")
+        print("hello")
+    } else {
+        print(data$RelatedTopics[[1]]$Text == TRUE)
     }
 }
 #else if(data$AbstractText == "") {
