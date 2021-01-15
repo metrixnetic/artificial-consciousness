@@ -16,17 +16,25 @@ print(data$AbstractText)
 
 if(data$AbstractText == "") {
     if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
-        i  <- 1
-        WS1  <- html_session(i)
-        search_url  <- paste0("https://www.google.com/search?q", input)
-        links <- search_url %>% 
-            html_nodes(WS1, ".r a") %>% # get the a nodes with an r class
-            html_attr("href") # get the href attributes
+get_first_google_link <- function(name, root = TRUE) {
+  url = URLencode(paste0("https://www.google.com/search?q=",name))
+  page <- xml2::read_html(url)
+  # extract all links
+  nodes <- rvest::html_nodes(page, "a")
+  links <- rvest::html_attr(nodes,"href")
+  # extract first link of the search results
+  link <- links[startsWith(links, "/url?q=")][1]
+  # clean it
+  link <- sub("^/url\\?q\\=(.*?)\\&sa.*$","\\1", link)
+  # get root if relevant
+  if(root) link <- sub("^(https?://.*?/).*$", "\\1", link)
+  link
+}
 
-        links = gsub('/url\\?q=','',sapply(strsplit(links[as.vector(grep('url',links))],split='&'),'[',1))
-# as a dataframe
-        websites <- data.frame(links = links, stringsAsFactors = FALSE)
-        print(length(websites))
+companies <- data.frame(company = c("apple acres llc","abbvie inc","apple inc"))
+companies <- transform(companies, url = sapply(company,get_first_google_link))
+companies
+
 
 #        scraping_wiki <- read_html("https://en.wikipedia.org/wiki/Web_scraping")
 
