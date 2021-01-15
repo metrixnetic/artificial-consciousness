@@ -31,14 +31,8 @@ print(data$AbstractText)
 
 if(data$AbstractText == "") {
     if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
-         first_link  <-  get_first_google_link(input)
-         print(first_link)
-#        scraping_wiki <- read_html("https://en.wikipedia.org/wiki/Web_scraping")
-
- #       cubik  <- scraping_wiki %>%
-  #      html_text()
-   #     cubik  <- gsub("\\$", "", cubik)
-    #    cat(cubik)
+        first_link  <-  get_first_google_link(input)
+        print(first_link)
 
     } else {
         print(data$RelatedTopics[[1]]$Text)
