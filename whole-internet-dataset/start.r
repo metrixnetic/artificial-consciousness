@@ -21,7 +21,9 @@ data  <- fromJSON(file=url)
 print(data$AbstractText)
 
 if(data$AbstractText == "") {
-    print(data$RelatedTopics[[1]]$Text)
+    if(data$RelatedTopics[[1]]$Text == "") {
+            print("hi")
+            }
 }
 #else if(data$AbstractText == "") {
  #   print("gay")
