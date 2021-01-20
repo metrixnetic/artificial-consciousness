@@ -41,13 +41,17 @@ if(data$AbstractText == "") {
         words  <- unlist(strsplit(first_link, " "))
         input  <- unlist(strsplit(input, " "))
         i  <- 0
+        all_mentions  <- c()
         while (i != length(input)) {
                 i  <- i + 1
 
-                res  <- which(words == input[i])
-                print(res)
+                all_mentions  <- c(all_mentions, which(words == input[i]))
 
         }
+
+        print(all_mentions)
+
+
     } else {
         print(data$RelatedTopics[[1]]$Text)
     }
