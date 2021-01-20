@@ -22,7 +22,7 @@ get_first_google_link <- function(name, root = TRUE) {
   return(link)
 }
 
-input  <- "albert einshtein"
+input  <- "how to be a good guy?"
 
 url  <- paste0("https://api.duckduckgo.com/?q=", input, "&format=json&pretty=1")
 data  <- fromJSON(file=url)
@@ -32,7 +32,14 @@ print(data$AbstractText)
 if(data$AbstractText == "") {
     if(inherits(try(data$RelatedTopics[[1]]$Text), "try-error")){
         first_link  <-  get_first_google_link(input)
-        print(first_link)
+        first_link <- read_html(first_link)
+
+        first_link  <- first_link %>%
+                        html_text()
+        first_link <- sub("^/url\\?q\\=(.*?)\\&sa.*$","\\1", first_link)
+
+        cat(first_link)
+
 
     } else {
         print(data$RelatedTopics[[1]]$Text)
