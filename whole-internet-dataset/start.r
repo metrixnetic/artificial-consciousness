@@ -38,9 +38,16 @@ if(data$AbstractText == "") {
                         html_text()
         first_link <- sub("^/url\\?q\\=(.*?)\\&sa.*$","\\1", first_link)
 
-        cat(first_link)
+        words  <- unlist(strsplit(first_link, " "))
+        input  <- unlist(strsplit(input, " "))
+        i  <- 0
+        while (i != length(input)) {
+                i  <- i + 1
 
+                res  <- which(words == input[i])
+                print(res)
 
+        }
     } else {
         print(data$RelatedTopics[[1]]$Text)
     }
